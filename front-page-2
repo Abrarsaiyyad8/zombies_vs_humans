@@ -8,8 +8,8 @@
     <style>
         :root {
             --zombie-green: #3dff00;
-            --soldier-blue: #00a2ff;
-            --blood-red: #8a0303; 
+            --human-blue: #00e5ff;
+            --hazard-yellow: #ffcc00; 
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -22,33 +22,60 @@
             color: white;
         }
 
-        /* BLOOD DRIP SYSTEM */
-        #blood-container {
-            position: absolute;
+        /* APOCALYPSE BACKGROUND */
+        .bg-apocalypse {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100vh;
-            pointer-events: none;
-            z-index: 15;
+            height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&q=80&w=2070');
+            background-size: cover;
+            background-position: center;
+            filter: grayscale(80%) brightness(20%);
+            z-index: -5;
         }
 
-        .blood-drip {
+        /* LEFT SIDE: CAMERA HUD EFFECT */
+        .camera-filter {
             position: absolute;
-            top: 100px; /* Aligned with the bottom of the Nosifer text */
-            width: 4px;
-            background: var(--blood-red);
-            border-bottom-left-radius: 5px;
-            border-bottom-right-radius: 5px;
-            box-shadow: 0 0 8px #ff0000;
-            animation: flowDown var(--speed) linear forwards;
-            animation-delay: var(--delay);
-            opacity: 0;
+            top: 0;
+            left: 0;
+            width: 50%;
+            height: 100%;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 1px, transparent 2px);
+            z-index: -1;
+            pointer-events: none;
         }
 
-        @keyframes flowDown {
-            0% { height: 0; opacity: 1; }
-            100% { height: 100vh; opacity: 1; }
+        /* RIGHT SIDE: TORCH LIGHT & FOG EFFECT */
+        .torch-overlay {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 10%, rgba(0,0,0,0.9) 70%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* INTENSE ASH PARTICLES */
+        .ash {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10;
+            animation: fall linear forwards;
+            filter: blur(1px);
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-50px) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translateY(110vh) translateX(60px) rotate(360deg); opacity: 0; }
         }
 
         .game-header {
@@ -61,14 +88,12 @@
 
         .game-title {
             font-family: 'Nosifer', cursive;
-            font-size: 5rem;
+            font-size: 4rem;
             letter-spacing: 10px;
-            background: linear-gradient(to right, var(--zombie-green), #fff, var(--soldier-blue));
+            background: linear-gradient(to right, var(--zombie-green), #fff, var(--human-blue));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
-            position: relative;
-            display: inline-block;
+            filter: drop-shadow(0 0 15px black);
         }
 
         .war-zone {
@@ -80,43 +105,21 @@
         .army-side {
             flex: 1;
             position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             overflow: hidden;
             transition: transform 0.8s ease-in-out;
         }
 
-        .zombies {
-            background: linear-gradient(to right, rgba(0,20,0,0.9), transparent), 
-                        url('https://www.transparenttextures.com/patterns/asfalt-dark.png');
-            border-right: 2px solid var(--zombie-green);
-        }
-
-        .soldiers {
-            background: linear-gradient(to left, rgba(0,20,40,0.9), transparent),
-                        url('https://www.transparenttextures.com/patterns/asfalt-dark.png');
-            border-left: 2px solid var(--soldier-blue);
-        }
-
+        /* CHARACTER SETTINGS */
         .character {
             position: absolute;
-            width: 120px;
-            filter: drop-shadow(0 0 15px black);
+            filter: drop-shadow(0 0 10px black);
             animation: breathe 3s ease-in-out infinite alternate;
+            user-select: none;
         }
 
-        .z1 { left: 10%; top: 30%; font-size: 80px; }
-        .z2 { left: 25%; top: 50%; font-size: 90px; animation-delay: 0.5s; }
-        .z3 { left: 5%; top: 70%; font-size: 70px; animation-delay: 1.2s; }
-
-        .s1 { right: 10%; top: 30%; font-size: 80px; }
-        .s2 { right: 25%; top: 50%; font-size: 90px; animation-delay: 0.7s; }
-        .s3 { right: 5%; top: 70%; font-size: 70px; animation-delay: 1.5s; }
-
         @keyframes breathe {
-            from { transform: translateY(0) scale(1); filter: brightness(1); }
-            to { transform: translateY(-15px) scale(1.05); filter: brightness(1.3); }
+            from { transform: translateY(0) scale(1); }
+            to { transform: translateY(-15px) scale(1.05); }
         }
 
         .ui-overlay {
@@ -126,185 +129,135 @@
             transform: translate(-50%, -50%);
             z-index: 30;
             text-align: center;
-            width: 450px;
-            transition: opacity 0.5s ease;
+            width: 400px;
         }
 
         .vs-circle {
-            background: #000;
-            border: 3px solid #fff;
-            width: 80px;
-            height: 80px;
+            background: rgba(0,0,0,0.9);
+            border: 2px solid #fff;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
             font-family: 'Nosifer', cursive;
-            font-size: 2rem;
+            font-size: 1.5rem;
             margin: 0 auto 20px;
         }
 
         .start-btn {
-            background: var(--blood-red);
-            color: white;
+            background: var(--hazard-yellow);
+            color: black;
             font-family: 'Stardos Stencil', cursive;
-            font-size: 2.5rem;
-            padding: 15px 60px;
-            border: 4px solid white;
+            font-size: 2.2rem;
+            padding: 15px;
+            border: 4px solid black;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 0 30px var(--blood-red);
-            transition: 0.3s;
-            text-transform: uppercase;
             width: 100%;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            /* GLOW EFFECT */
+            box-shadow: 0 0 30px var(--hazard-yellow);
+            transition: 0.3s;
         }
 
         .start-btn:hover {
             transform: scale(1.05);
             background: white;
-            color: var(--blood-red);
             box-shadow: 0 0 50px white;
         }
 
-        .mode-container {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-        }
-
+        .mode-container { display: flex; gap: 10px; }
         .mode-btn {
             background: rgba(0,0,0,0.8);
-            color: #888;
-            border: 2px solid #444;
-            padding: 15px 25px;
-            border-radius: 10px;
+            color: #ccc;
+            border: 1px solid #666;
+            padding: 10px;
+            border-radius: 5px;
             cursor: pointer;
-            font-family: 'Stardos Stencil', sans-serif;
-            font-size: 1.2rem;
-            transition: 0.3s;
             flex: 1;
-            text-transform: uppercase;
+            font-family: 'Stardos Stencil', sans-serif;
         }
-
-        .mode-btn.active {
-            color: white;
-            border-color: white;
-            background: rgba(40,40,40,0.9);
-            box-shadow: 0 0 25px white;
-            transform: translateY(-3px);
-        }
-
-        .mode-btn:hover:not(.active) {
-            border-color: #aaa;
-            color: white;
-        }
+        .mode-btn.active { border-color: var(--human-blue); color: white; box-shadow: 0 0 10px var(--human-blue); }
     </style>
 </head>
 <body>
 
-    <div id="blood-container"></div>
+    <div class="bg-apocalypse"></div>
+    <div class="camera-filter"></div>
+    <div class="torch-overlay"></div>
 
     <header class="game-header">
-        <h1 class="game-title" id="main-title">TIC TAC TOE</h1>
+        <h1 class="game-title">TIC TAC TOE</h1>
     </header>
 
     <div class="war-zone">
         <section class="army-side zombies">
-            <div class="character z1">🧟</div>
-            <div class="character z2">🧟‍♂️</div>
-            <div class="character z3">🧟‍♀️</div>
-            <div class="character" style="left:35%; top:20%; font-size:60px;">🧟</div>
+            <div class="character" style="left:10%; top:15%; font-size:70px;">🧟</div>
+            <div class="character" style="left:25%; top:35%; font-size:85px;">🧟‍♂️</div>
+            <div class="character" style="left:15%; top:55%; font-size:80px;">🧟‍♀️</div>
+            <div class="character" style="left:40%; top:20%; font-size:65px;">🧟</div>
+            <div class="character" style="left:5%; top:40%; font-size:75px;">🧟‍♂️</div>
+            <div class="character" style="left:35%; top:65%; font-size:95px;">🧟‍♀️</div>
+            <div class="character" style="left:20%; top:80%; font-size:70px;">🧟</div>
         </section>
 
-        <section class="army-side soldiers">
-            <div class="character s1">🪖</div>
-            <div class="character s2">🔫</div>
-            <div class="character s3">🎖️</div>
-            <div class="character" style="right:35%; top:75%; font-size:60px;">🛡️</div>
+        <section class="army-side humans">
+            <div class="character" style="right:10%; top:20%; font-size:70px;">👨</div>
+            <div class="character" style="right:30%; top:40%; font-size:80px;">👩</div>
+            <div class="character" style="right:15%; top:60%; font-size:75px;">🧔</div>
+            <div class="character" style="right:40%; top:15%; font-size:60px;">👱‍♂️</div>
+            <div class="character" style="right:5%; top:45%; font-size:65px;">👵</div>
+            <div class="character" style="right:35%; top:70%; font-size:90px;">👴</div>
+            <div class="character" style="right:20%; top:10%; font-size:55px;">👩‍🦰</div>
         </section>
     </div>
 
     <div class="ui-overlay">
         <div class="vs-circle">VS</div>
-        
         <button class="start-btn" onclick="startGame()">Start Game</button>
-
         <div class="mode-container">
-            <button class="mode-btn active" id="single-player" onclick="setMode('single')">Single Player</button>
-            <button class="mode-btn" id="double-player" onclick="setMode('double')">Double Player</button>
+            <button class="mode-btn active" id="single-player" onclick="setMode('single')">Solo</button>
+            <button class="mode-btn" id="double-player" onclick="setMode('double')">Duo</button>
         </div>
     </div>
 
     <script>
-        // Generate drips from the title words
-        function createTitleBlood() {
-            const container = document.getElementById('blood-container');
-            const title = document.getElementById('main-title');
-            const rect = title.getBoundingClientRect();
+        // INTENSE ASH SYSTEM
+        function createAsh() {
+            const ash = document.createElement('div');
+            ash.className = 'ash';
+            const size = Math.random() * 6 + 2 + 'px'; 
+            ash.style.width = size;
+            ash.style.height = size;
+            ash.style.left = Math.random() * 100 + 'vw';
+            ash.style.top = '-20px';
+            ash.style.opacity = Math.random() * 0.9 + 0.1;
             
-            // Number of drips to create
-            const dripCount = 15;
-
-            for (let i = 0; i < dripCount; i++) {
-                const drip = document.createElement('div');
-                drip.className = 'blood-drip';
-                
-                // Random position across the width of the title
-                const randomX = rect.left + (Math.random() * rect.width);
-                const randomSpeed = 8 + (Math.random() * 10); // 8s to 18s
-                const randomDelay = Math.random() * 5; // Start within 5s
-
-                drip.style.left = `${randomX}px`;
-                drip.style.setProperty('--speed', `${randomSpeed}s`);
-                drip.style.setProperty('--delay', `${randomDelay}s`);
-                
-                // Randomize drip width slightly
-                drip.style.width = `${2 + Math.random() * 4}px`;
-
-                container.appendChild(drip);
-            }
+            const duration = Math.random() * 2 + 2.5 + 's'; 
+            ash.style.animationDuration = duration;
+            
+            document.body.appendChild(ash);
+            setTimeout(() => ash.remove(), 5000);
         }
 
-        // Initialize blood on load
-        window.onload = createTitleBlood;
-
-        let selectedMode = 'single';
+        setInterval(createAsh, 60);
 
         function setMode(mode) {
-            selectedMode = mode;
-            document.getElementById('single-player').classList.remove('active');
-            document.getElementById('double-player').classList.remove('active');
-            
-            if(mode === 'single') {
-                document.getElementById('single-player').classList.add('active');
-            } else {
-                document.getElementById('double-player').classList.add('active');
-            }
+            document.getElementById('single-player').classList.toggle('active', mode === 'single');
+            document.getElementById('double-player').classList.toggle('active', mode === 'double');
         }
 
         function startGame() {
-            const startBtn = document.querySelector('.start-btn');
-            const modeBtns = document.querySelectorAll('.mode-btn');
-            
-            startBtn.innerHTML = "DEPLOYING...";
-            startBtn.style.background = "white";
-            startBtn.style.color = "#8a0303";
-            startBtn.style.pointerEvents = "none";
-
-            modeBtns.forEach(btn => {
-                btn.style.opacity = "0.5";
-                btn.style.pointerEvents = "none";
-            });
-
-            document.querySelector('.zombies').style.transform = "translateX(-100%)";
-            document.querySelector('.soldiers').style.transform = "translateX(100%)";
-            
-            setTimeout(() => {
-                const modeName = selectedMode === 'single' ? "Single Player" : "Double Player";
-                alert(`The Battle Begins! Mode: ${modeName}`);
-            }, 800);
+            document.querySelector('.zombies').style.transform = "translateX(-110%)";
+            document.querySelector('.humans').style.transform = "translateX(110%)";
+            document.querySelector('.ui-overlay').style.opacity = "0";
+            document.querySelector('.ui-overlay').style.pointerEvents = "none";
+            setTimeout(() => { alert("Game starting... survive at all costs!"); }, 800);
         }
     </script>
 </body>
 </html>
+
