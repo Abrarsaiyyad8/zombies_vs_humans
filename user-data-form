@@ -5,16 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Virus Containment | Sector India</title>
     <style>
+        :root {
+            --terminal-green: #00ff41;
+            --warning-red: #ff0000;
+            --dark-bg: #050505;
+        }
+
         body, html {
             height: 100%;
             margin: 0;
+            padding: 0;
             font-family: 'Courier New', Courier, monospace;
-            color: #00ff41; 
+            background-color: var(--dark-bg);
+            color: white;
             overflow: hidden;
-            background-color: #050505;
             cursor: crosshair;
         }
 
+        /* Surveillance Header */
         #counter-header {
             position: fixed;
             top: 0;
@@ -24,28 +32,33 @@
             text-align: center;
             padding: 12px 0;
             font-weight: bold;
-            z-index: 10;
-            border-bottom: 2px solid #ff0000;
+            z-index: 100;
+            border-bottom: 2px solid var(--warning-red);
             text-transform: uppercase;
             letter-spacing: 3px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
 
-        #count { color: #00ff41; font-size: 1.3em; }
+        #count { 
+            color: var(--terminal-green); 
+            font-size: 1.3em; 
+            text-shadow: 0 0 5px var(--terminal-green);
+        }
 
-        .bg-container {
+        /* Radar Surveillance Background */
+        .radar-bg {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
+            z-index: 1;
             background: radial-gradient(circle, #1a0000 0%, #000 100%);
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        /* Radar Surveillance Effect - Enhanced Visibility */
         .radar {
             position: absolute;
             width: 200vmax;
@@ -57,7 +70,6 @@
                 rgba(0, 255, 65, 0.5) 100%
             );
             animation: rotate-radar 4s linear infinite;
-            z-index: 1;
             pointer-events: none;
         }
 
@@ -66,112 +78,118 @@
             to { transform: rotate(360deg); }
         }
 
-        .effect {
-            position: absolute;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 5;
-            animation: explode 0.8s ease-out forwards;
-        }
-
-        @keyframes explode {
-            0% { transform: scale(0); opacity: 1; }
-            100% { transform: scale(4); opacity: 0; }
-        }
-
-        .glitch-active {
-            animation: shake 0.2s cubic-bezier(.36,.07,.19,.97) both;
-            filter: invert(1) hue-rotate(90deg) brightness(1.5);
-        }
-
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
-        }
-
+        /* Survivor Registration Form */
         .form-overlay {
-            background: rgba(0, 0, 0, 0.85); /* Slightly transparent to see radar */
-            border: 2px solid #ff0000;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid var(--warning-red);
             padding: 30px;
-            border-radius: 5px;
             width: 350px;
             margin: 140px auto;
-            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
             position: relative;
-            z-index: 8;
+            z-index: 101;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
         }
 
-        h2 { text-align: center; color: #ff0000; text-transform: uppercase; letter-spacing: 2px; }
-        label { display: block; margin-top: 15px; font-size: 0.9em; font-weight: bold; }
-        input, button {
+        .form-overlay h2 { 
+            text-align: center; 
+            color: var(--warning-red); 
+            margin-top: 0; 
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .form-overlay label {
+            display: block;
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #aaa;
+            text-transform: uppercase;
+        }
+
+        .form-overlay input {
             width: 100%;
             padding: 12px;
             margin: 8px 0;
             background: #0a0a0a;
-            border: 1px solid #ff0000;
-            color: #00ff41;
+            border: 1px solid var(--warning-red);
+            color: var(--terminal-green);
             box-sizing: border-box;
             outline: none;
+            font-family: 'Courier New', monospace;
         }
-        button {
-            background: #ff0000;
-            color: black;
-            font-weight: bolder;
-            cursor: pointer;
-            margin-top: 20px;
-            border: none;
-            text-transform: uppercase;
-        }
-        button:hover { background: #00ff41; box-shadow: 0 0 20px #00ff41; }
 
-        .virus-layer {
-            position: absolute;
+        .form-overlay input:focus {
+            border-color: var(--terminal-green);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+        }
+
+        .form-overlay button {
             width: 100%;
-            height: 100%;
-            background-image: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
-            opacity: 0.2;
-            z-index: 2;
+            padding: 15px;
+            background: var(--warning-red);
+            color: black;
+            font-weight: 900;
+            cursor: pointer;
+            border: none;
+            margin-top: 20px;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+
+        .form-overlay button:hover {
+            background: var(--terminal-green);
+            box-shadow: 0 0 20px var(--terminal-green);
+        }
+
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: rgba(0, 255, 65, 0.1);
+            position: fixed;
+            z-index: 102;
+            top: 0;
+            animation: scan 3s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
         }
     </style>
 </head>
-<body id="main-body">
+<body>
+
+    <div class="scanline"></div>
 
     <div id="counter-header">
         ⚠️ ZOMBIES DETECTED IN INDIA: <span id="count">48,201</span>
     </div>
 
-    <div id="bg" class="bg-container">
+    <div class="radar-bg">
         <div class="radar"></div>
-        <div class="virus-layer"></div>
     </div>
 
     <div class="form-overlay">
         <h2>Enter Zone</h2>
-        <form action="#">
-            <label>Game Name</label>
-            <input type="text" placeholder="Survivor Name" required>
+        <form id="entry-form">
+            <label>Name</label>
+            <input type="text" placeholder="" required>
 
-            <label>Game Email</label>
-            <input type="email" placeholder="name@outbreak.com" required>
+            <label>Email</label>
+            <input type="email" placeholder="" required>
 
-            <label>Containment City</label>
-            <input type="text" placeholder="Enter Your City Name" required>
+            <label>City</label>
+            <input type="text" placeholder="" required>
 
-            <button type="submit">START SURVIVAL</button>
+            <button type="submit">ENTER BATTLE</button>
         </form>
     </div>
 
     <script>
-        let zombieCount = 48201;
-        const countDisplay = document.getElementById('count');
-        const bg = document.getElementById('bg');
-        const body = document.getElementById('main-body');
-
-        // AUDIO ENGINE
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
+        
         function playPing() {
             if (audioCtx.state === 'suspended') return;
             const osc = audioCtx.createOscillator();
@@ -179,7 +197,7 @@
             osc.type = 'sine';
             osc.frequency.setValueAtTime(880, audioCtx.currentTime);
             osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.5);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
             osc.connect(gain);
             gain.connect(audioCtx.destination);
@@ -187,57 +205,22 @@
             osc.stop(audioCtx.currentTime + 0.5);
         }
 
-        function playGlitch() {
-            if (audioCtx.state === 'suspended') return;
-            const bufferSize = audioCtx.sampleRate * 0.1;
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
-            const noise = audioCtx.createBufferSource();
-            noise.buffer = buffer;
-            const noiseGain = audioCtx.createGain();
-            noiseGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-            noiseGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-            noise.connect(noiseGain);
-            noiseGain.connect(audioCtx.destination);
-            noise.start();
-        }
+        let zombieCount = 48201;
+        const countDisplay = document.getElementById('count');
 
-        function createBurst() {
-            for(let i = 0; i < 3; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'effect';
-                particle.style.backgroundColor = Math.random() > 0.5 ? '#ff4500' : '#8b0000';
-                const size = Math.random() * 30 + 5;
-                particle.style.width = size + 'px';
-                particle.style.height = size + 'px';
-                particle.style.left = Math.random() * window.innerWidth + 'px';
-                particle.style.top = Math.random() * window.innerHeight + 'px';
-                body.appendChild(particle);
-                setTimeout(() => { particle.remove(); }, 800);
-            }
-        }
-
-        // Radar Ping (4s)
-        setInterval(() => {
-            playPing();
-        }, 4000);
-
-        // Glitch and Count update
         setInterval(() => {
             zombieCount += Math.floor(Math.random() * 5) + 1;
             countDisplay.innerText = zombieCount.toLocaleString();
-            createBurst();
-            bg.classList.add('glitch-active');
-            playGlitch();
-            setTimeout(() => bg.classList.remove('glitch-active'), 150);
-        }, 2500);
+            playPing();
+        }, 4000);
 
-        // Silent activation on interaction
+        const entryForm = document.getElementById('entry-form');
+        entryForm.onsubmit = (e) => {
+            e.preventDefault();
+            alert("Entry Authorized. Prepare for combat.");
+        };
+
         window.addEventListener('mousedown', () => {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-        });
-        window.addEventListener('keydown', () => {
             if (audioCtx.state === 'suspended') audioCtx.resume();
         });
     </script>
