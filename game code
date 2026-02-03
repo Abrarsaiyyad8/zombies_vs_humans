@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Apocalypse Tic-Tac-Toe</title>
+    <title>Apocalypse: Battle for the Playground</title>
     <style>
         body {
             margin: 0;
@@ -14,55 +14,73 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
-            background: linear-gradient(to bottom, 
-                #4a0000 0%, #2c0000 50%, 
-                #1e3c1a 50%, #2d5a27 100%);
+            /* Updated Background: Jungle Waterfall Adventure Style */
+            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), 
+                url('https://images.unsplash.com/photo-1590691566903-692bf5ca7678?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
             color: white;
+        }
+
+        #blood-center {
+            position: fixed;
+            top: 50%; left: 50%;
+            width: 0px; height: 0px;
+            background: radial-gradient(circle, rgba(160, 0, 0, 0.95) 0%, rgba(80, 0, 0, 0.8) 40%, rgba(0,0,0,0) 75%);
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            transition: width 4s ease-out, height 4s ease-out;
+            border-radius: 50%;
+            pointer-events: none;
         }
 
         .army-row {
             display: grid;
             grid-template-columns: repeat(10, 1fr);
-            gap: 10px;
-            width: 90%;
-            z-index: 2;
-            padding: 10px;
-            justify-items: center;
+            gap: 15px;
+            width: 95%;
+            z-index: 5;
             position: absolute;
         }
 
         #zombie-army { top: 20px; }
-        
-        /* Humans moved down one "line" (closer to the bottom) */
         #human-army { bottom: 20px; }
 
-        .unit { font-size: 30px; transition: transform 0.8s cubic-bezier(0.6, -0.28, 0.735, 0.045); }
-        
+        .unit { 
+            font-size: 40px; 
+            transition: all 1.2s cubic-bezier(0.5, 0, 0.5, 1);
+            animation: move 3s infinite ease-in-out;
+            display: inline-block;
+        }
+
+        @keyframes move {
+            0%, 100% { transform: translateY(0) rotate(-3deg); }
+            50% { transform: translateY(-8px) rotate(3deg); }
+        }
+
         #game-container {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            position: relative;
             z-index: 10;
-            /* Shifted the entire game board up */
-            margin-top: -80px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            border-radius: 15px;
+            border: 4px solid #444;
+            box-shadow: 0 0 50px #000;
         }
 
         #status {
-            background: rgba(0,0,0,0.8);
-            padding: 10px 30px;
-            border-radius: 50px;
-            margin-bottom: 25px;
+            text-align: center;
             text-transform: uppercase;
-            border: 2px solid #444;
-            font-size: 1.3rem;
-            letter-spacing: 2px;
+            letter-spacing: 5px;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
         }
 
         .grid {
             display: grid;
             grid-template-columns: repeat(3, 100px);
             grid-template-rows: repeat(3, 100px);
+            gap: 8px;
         }
 
         .cell {
@@ -71,53 +89,70 @@
             align-items: center;
             font-size: 60px;
             cursor: pointer;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid #555;
         }
 
-        .cell:nth-child(3n+1), .cell:nth-child(3n+2) { border-right: 4px solid white; }
-        .cell:nth-child(1), .cell:nth-child(2), .cell:nth-child(3),
-        .cell:nth-child(4), .cell:nth-child(5), .cell:nth-child(6) { border-bottom: 4px solid white; }
-
-        #blood-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 0%;
-            background: rgba(138, 3, 3, 0.9);
-            z-index: 100;
-            transition: height 3s ease-in;
-            pointer-events: none;
-        }
-
-        .firecracker {
-            position: absolute;
-            font-size: 40px;
-            z-index: 101;
-            animation: explode 1s forwards;
-        }
-
-        @keyframes explode {
-            0% { transform: scale(0); opacity: 1; }
-            100% { transform: scale(4); opacity: 0; }
-        }
+        .cell:hover { background: rgba(255,255,255,0.15); }
 
         .final-msg {
             position: fixed;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 45px;
+            font-size: 60px;
             text-align: center;
-            background: rgba(0,0,0,0.95);
-            padding: 40px;
-            border: 5px solid gold;
+            background: rgba(0,0,0,0.98);
+            padding: 60px;
+            border: 10px double red;
             display: none;
-            z-index: 200;
+            z-index: 1000;
+            width: 100%;
+            font-weight: bold;
+        }
+
+        .firecracker {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            z-index: 999;
+            pointer-events: none;
+            animation: explode 1s ease-out forwards;
+        }
+
+        @keyframes explode {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+
+        .horde-unit {
+            position: absolute;
+            font-size: 50px;
+            z-index: 999;
+            animation: swarm 2s infinite;
+        }
+
+        .joy-unit {
+            position: absolute;
+            font-size: 60px;
+            z-index: 1001;
+            animation: swarm 1.5s infinite ease-in-out;
+        }
+
+        @keyframes swarm {
+            0% { transform: scale(1) translateY(0); }
+            50% { transform: scale(1.3) translateY(-20px); }
+            100% { transform: scale(1) translateY(0); }
         }
     </style>
 </head>
 <body>
 
-    <div id="blood-overlay"></div>
+    <div id="blood-center"></div>
     <div id="msg" class="final-msg"></div>
 
     <div id="zombie-army" class="army-row"></div>
+    <div id="human-army" class="army-row"></div>
 
     <div id="game-container">
         <h2 id="status">Zombies' Turn</h2>
@@ -134,26 +169,45 @@
         </div>
     </div>
 
-    <div id="human-army" class="army-row"></div>
-
 <script>
     const cells = document.querySelectorAll('.cell');
     const statusTxt = document.getElementById('status');
     const zombieArmy = document.getElementById('zombie-army');
     const humanArmy = document.getElementById('human-army');
-    const blood = document.getElementById('blood-overlay');
+    const bloodCenter = document.getElementById('blood-center');
     const msg = document.getElementById('msg');
+    const gameContainer = document.getElementById('game-container');
 
     let currentPlayer = '🧟'; 
     let gameState = ["", "", "", "", "", "", "", "", ""];
     let gameActive = true;
 
-    for(let i=0; i<30; i++) {
-        zombieArmy.innerHTML += `<div class="unit zombie">🧟</div>`;
-        humanArmy.innerHTML += `<div class="unit human">👨‍🌾</div>`;
+    function createArmies() {
+        zombieArmy.innerHTML = '';
+        humanArmy.innerHTML = '';
+        for(let i=0; i<30; i++) {
+            zombieArmy.innerHTML += `<div class="unit zombie">🧟</div>`;
+            humanArmy.innerHTML += `<div class="unit human">👨‍🌾</div>`;
+        }
     }
 
+    createArmies();
+
     const winConditions = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+    function createFirecracker(x, y) {
+        for (let i = 0; i < 20; i++) {
+            const p = document.createElement('div');
+            p.className = 'firecracker';
+            p.style.left = x + 'px';
+            p.style.top = y + 'px';
+            p.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            p.style.setProperty('--tx', (Math.random() - 0.5) * 300 + 'px');
+            p.style.setProperty('--ty', (Math.random() - 0.5) * 300 + 'px');
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 1000);
+        }
+    }
 
     function handleCellClick(e) {
         const index = e.target.getAttribute('data-index');
@@ -176,12 +230,19 @@
 
         if (roundWon) {
             gameActive = false;
+            gameContainer.style.display = 'none';
             currentPlayer === '🧟' ? triggerZombieWin() : triggerHumanWin();
+            setTimeout(resetGame, 8000); 
             return;
         }
 
         if (!gameState.includes("")) {
-            statusTxt.innerText = "Apocalypse Stalled";
+            gameActive = false;
+            msg.innerHTML = "ZOMBAIES WILL RETURN";
+            msg.style.display = "block";
+            msg.style.color = "orange";
+            msg.style.borderColor = "orange";
+            setTimeout(resetGame, 4000);
             return;
         }
 
@@ -190,48 +251,92 @@
     }
 
     function triggerZombieWin() {
-        statusTxt.innerText = "EXTINCTION!";
+        bloodCenter.style.width = "300vw";
+        bloodCenter.style.height = "300vh";
         document.querySelectorAll('.zombie').forEach((z, i) => {
-            setTimeout(() => { z.style.transform = `translateY(${window.innerHeight * 0.4}px) rotate(720deg)`; }, i * 30);
+            setTimeout(() => { 
+                z.style.transform = `translateY(${window.innerHeight * 0.45}px) scale(2)`; 
+            }, i * 10);
         });
+        document.querySelectorAll('.human').forEach((h, i) => {
+            setTimeout(() => { 
+                h.innerText = "🧟";
+                h.style.color = "green";
+                h.style.transform = "scale(1.5)";
+            }, 800 + (i * 10));
+        });
+        for(let i=0; i<40; i++) {
+            setTimeout(() => {
+                const swarm = document.createElement('div');
+                swarm.className = 'horde-unit';
+                swarm.innerText = '🧟';
+                swarm.style.left = Math.random() * 100 + 'vw';
+                swarm.style.top = Math.random() * 100 + 'vh';
+                document.body.appendChild(swarm);
+            }, 1200 + (i * 40));
+        }
         setTimeout(() => {
-            blood.style.height = "100%";
-            msg.innerHTML = "HUMANS DEVOURED<br><span style='font-size:20px'>The World is Dead</span>";
+            msg.innerHTML = "ZOMBAIES TAKE OVER THE WORLD";
             msg.style.display = "block";
             msg.style.color = "red";
+            msg.style.borderColor = "red";
         }, 1200);
     }
 
     function triggerHumanWin() {
-        statusTxt.innerText = "VICTORY!";
         document.querySelectorAll('.human').forEach((h, i) => {
-            setTimeout(() => {
-                h.innerText = "🪓";
-                h.style.transform = `translateY(-${window.innerHeight * 0.6}px)`;
-            }, i * 30);
+            setTimeout(() => { 
+                h.style.transform = `translateY(-${window.innerHeight * 0.8}px) scale(2.5)`; 
+            }, i * 10);
         });
+
+        document.querySelectorAll('.zombie').forEach((z, i) => {
+            setTimeout(() => { 
+                z.innerText = "💀";
+                z.style.opacity = "0";
+                z.style.transform = "scale(0.1)";
+            }, 400 + (i * 15));
+        });
+
         setTimeout(() => {
-            msg.innerHTML = "HUMANS WON! 🎉<br><span style='font-size:20px'>Safe for another day!</span>";
+            for(let i=0; i<50; i++) {
+                setTimeout(() => {
+                    const joy = document.createElement('div');
+                    joy.className = 'joy-unit';
+                    joy.innerText = '👨‍🌾';
+                    joy.style.left = Math.random() * 100 + 'vw';
+                    joy.style.top = Math.random() * 100 + 'vh';
+                    document.body.appendChild(joy);
+                    createFirecracker(parseInt(joy.style.left) * window.innerWidth / 100, parseInt(joy.style.top) * window.innerHeight / 100);
+                }, i * 50);
+            }
+        }, 1000);
+
+        setTimeout(() => {
+            msg.innerHTML = "✨ HUMANS SAVED THE WORLD! ✨";
             msg.style.display = "block";
-            msg.style.color = "#4eff4e";
-            createFirecrackers();
-        }, 1200);
+            msg.style.color = "#00ff00";
+            msg.style.borderColor = "#00ff00";
+            msg.style.textShadow = "0 0 20px #00ff00";
+        }, 1500);
     }
 
-    function createFirecrackers() {
-        for(let i=0; i<30; i++) {
-            setTimeout(() => {
-                const f = document.createElement('div');
-                f.className = 'firecracker';
-                f.innerText = ['✨', '🎆', '🧨', '🎉'][Math.floor(Math.random()*4)];
-                f.style.left = Math.random() * 100 + 'vw';
-                f.style.top = Math.random() * 100 + 'vh';
-                document.body.appendChild(f);
-            }, i * 100);
-        }
+    function resetGame() {
+        document.querySelectorAll('.horde-unit, .joy-unit, .firecracker').forEach(u => u.remove());
+        gameState = ["", "", "", "", "", "", "", "", ""];
+        gameActive = true;
+        currentPlayer = '🧟';
+        statusTxt.innerText = "Zombies' Turn";
+        msg.style.display = "none";
+        gameContainer.style.display = 'block';
+        bloodCenter.style.width = "0px";
+        bloodCenter.style.height = "0px";
+        cells.forEach(cell => cell.innerText = "");
+        createArmies();
     }
 
     cells.forEach(cell => cell.addEventListener('click', handleCellClick));
 </script>
 </body>
 </html>
+
