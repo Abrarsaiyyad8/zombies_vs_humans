@@ -14,7 +14,6 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
-            /* Updated Background: Jungle Waterfall Adventure Style */
             background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), 
                 url('https://images.unsplash.com/photo-1590691566903-692bf5ca7678?q=80&w=2000&auto=format&fit=crop');
             background-size: cover;
@@ -61,11 +60,10 @@
         #game-container {
             position: relative;
             z-index: 10;
-            background: rgba(0, 0, 0, 0.85);
+            background: transparent; 
             padding: 20px;
-            border-radius: 15px;
-            border: 4px solid #444;
-            box-shadow: 0 0 50px #000;
+            border: none;
+            box-shadow: none;
         }
 
         #status {
@@ -74,13 +72,13 @@
             letter-spacing: 5px;
             margin-bottom: 15px;
             font-size: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
         }
 
         .grid {
             display: grid;
             grid-template-columns: repeat(3, 100px);
             grid-template-rows: repeat(3, 100px);
-            gap: 8px;
         }
 
         .cell {
@@ -89,11 +87,22 @@
             align-items: center;
             font-size: 60px;
             cursor: pointer;
-            background: rgba(255,255,255,0.05);
-            border: 2px solid #555;
+            background: transparent;
+            border: none;
         }
 
-        .cell:hover { background: rgba(255,255,255,0.15); }
+        .cell:nth-child(1), .cell:nth-child(2), .cell:nth-child(4), .cell:nth-child(5) {
+            border-right: 4px solid #fff;
+            border-bottom: 4px solid #fff;
+        }
+        .cell:nth-child(3), .cell:nth-child(6) {
+            border-bottom: 4px solid #fff;
+        }
+        .cell:nth-child(7), .cell:nth-child(8) {
+            border-right: 4px solid #fff;
+        }
+
+        .cell:hover { background: rgba(255,255,255,0.1); }
 
         .final-msg {
             position: fixed;
@@ -110,33 +119,11 @@
             font-weight: bold;
         }
 
-        .firecracker {
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            z-index: 999;
-            pointer-events: none;
-            animation: explode 1s ease-out forwards;
-        }
-
-        @keyframes explode {
-            0% { transform: translate(0, 0) scale(1); opacity: 1; }
-            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
-        }
-
         .horde-unit {
             position: absolute;
             font-size: 50px;
             z-index: 999;
             animation: swarm 2s infinite;
-        }
-
-        .joy-unit {
-            position: absolute;
-            font-size: 60px;
-            z-index: 1001;
-            animation: swarm 1.5s infinite ease-in-out;
         }
 
         @keyframes swarm {
@@ -155,7 +142,7 @@
     <div id="human-army" class="army-row"></div>
 
     <div id="game-container">
-        <h2 id="status">Zombies' Turn</h2>
+        <h2 id="status">(your turn)</h2>
         <div class="grid" id="board">
             <div class="cell" data-index="0"></div>
             <div class="cell" data-index="1"></div>
@@ -178,7 +165,9 @@
     const msg = document.getElementById('msg');
     const gameContainer = document.getElementById('game-container');
 
-    let currentPlayer = '🧟'; 
+    const aiPlayer = '🧟';
+    const humanPlayer = '👨‍🌾';
+    let currentPlayer = humanPlayer; // START WITH HUMAN
     let gameState = ["", "", "", "", "", "", "", "", ""];
     let gameActive = true;
 
@@ -195,35 +184,91 @@
 
     const winConditions = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 
-    function createFirecracker(x, y) {
-        for (let i = 0; i < 20; i++) {
-            const p = document.createElement('div');
-            p.className = 'firecracker';
-            p.style.left = x + 'px';
-            p.style.top = y + 'px';
-            p.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
-            p.style.setProperty('--tx', (Math.random() - 0.5) * 300 + 'px');
-            p.style.setProperty('--ty', (Math.random() - 0.5) * 300 + 'px');
-            document.body.appendChild(p);
-            setTimeout(() => p.remove(), 1000);
+    function handleCellClick(e) {
+        const index = e.target.getAttribute('data-index');
+        if (gameState[index] !== "" || !gameActive || currentPlayer === aiPlayer) return;
+        
+        makeMove(index, humanPlayer);
+        
+        if (gameActive) {
+            setTimeout(aiMove, 600);
         }
     }
 
-    function handleCellClick(e) {
-        const index = e.target.getAttribute('data-index');
-        if (gameState[index] !== "" || !gameActive) return;
-        gameState[index] = currentPlayer;
-        e.target.innerText = currentPlayer;
+    function makeMove(index, player) {
+        gameState[index] = player;
+        cells[index].innerText = player;
         checkResult();
+    }
+
+    function aiMove() {
+        if (!gameActive) return;
+        let bestMove = minimax(gameState, aiPlayer).index;
+        makeMove(bestMove, aiPlayer);
+    }
+
+    function checkWin(board, player) {
+        return winConditions.some(condition => {
+            return condition.every(index => board[index] === player);
+        });
+    }
+
+    function minimax(newBoard, player) {
+        let availSpots = newBoard.map((val, i) => val === "" ? i : null).filter(val => val !== null);
+
+        if (checkWin(newBoard, humanPlayer)) return {score: -10};
+        if (checkWin(newBoard, aiPlayer)) return {score: 10};
+        if (availSpots.length === 0) return {score: 0};
+
+        let moves = [];
+        for (let i = 0; i < availSpots.length; i++) {
+            let move = {};
+            move.index = availSpots[i];
+            newBoard[availSpots[i]] = player;
+
+            if (player === aiPlayer) {
+                let result = minimax(newBoard, humanPlayer);
+                move.score = result.score;
+            } else {
+                let result = minimax(newBoard, aiPlayer);
+                move.score = result.score;
+            }
+
+            newBoard[availSpots[i]] = "";
+            moves.push(move);
+        }
+
+        let bestMove;
+        if (player === aiPlayer) {
+            let bestScore = -10000;
+            for (let i = 0; i < moves.length; i++) {
+                if (moves[i].score > bestScore) {
+                    bestScore = moves[i].score;
+                    bestMove = i;
+                }
+            }
+        } else {
+            let bestScore = 10000;
+            for (let i = 0; i < moves.length; i++) {
+                if (moves[i].score < bestScore) {
+                    bestScore = moves[i].score;
+                    bestMove = i;
+                }
+            }
+        }
+        return moves[bestMove];
     }
 
     function checkResult() {
         let roundWon = false;
+        let winner = null;
+
         for (let condition of winConditions) {
             if (gameState[condition[0]] === gameState[condition[1]] && 
                 gameState[condition[1]] === gameState[condition[2]] && 
                 gameState[condition[0]] !== "") {
                 roundWon = true;
+                winner = gameState[condition[0]];
                 break;
             }
         }
@@ -231,7 +276,7 @@
         if (roundWon) {
             gameActive = false;
             gameContainer.style.display = 'none';
-            currentPlayer === '🧟' ? triggerZombieWin() : triggerHumanWin();
+            winner === '🧟' ? triggerZombieWin() : triggerHumanWin();
             setTimeout(resetGame, 8000); 
             return;
         }
@@ -247,16 +292,14 @@
         }
 
         currentPlayer = currentPlayer === '🧟' ? '👨‍🌾' : '🧟';
-        statusTxt.innerText = `${currentPlayer === '🧟' ? "Zombies'" : "Humans'"} Turn`;
+        statusTxt.innerText = currentPlayer === '🧟' ? "Zombies' Turn" : "(your turn)";
     }
 
     function triggerZombieWin() {
         bloodCenter.style.width = "300vw";
         bloodCenter.style.height = "300vh";
         document.querySelectorAll('.zombie').forEach((z, i) => {
-            setTimeout(() => { 
-                z.style.transform = `translateY(${window.innerHeight * 0.45}px) scale(2)`; 
-            }, i * 10);
+            setTimeout(() => { z.style.transform = `translateY(${window.innerHeight * 0.45}px) scale(2)`; }, i * 10);
         });
         document.querySelectorAll('.human').forEach((h, i) => {
             setTimeout(() => { 
@@ -285,39 +328,16 @@
 
     function triggerHumanWin() {
         document.querySelectorAll('.human').forEach((h, i) => {
-            setTimeout(() => { 
-                h.style.transform = `translateY(-${window.innerHeight * 0.8}px) scale(2.5)`; 
-            }, i * 10);
+            setTimeout(() => { h.style.transform = `translateY(-${window.innerHeight * 0.8}px) scale(2.5)`; }, i * 10);
         });
-
         document.querySelectorAll('.zombie').forEach((z, i) => {
-            setTimeout(() => { 
-                z.innerText = "💀";
-                z.style.opacity = "0";
-                z.style.transform = "scale(0.1)";
-            }, 400 + (i * 15));
+            setTimeout(() => { z.innerText = "💀"; z.style.opacity = "0"; z.style.transform = "scale(0.1)"; }, 400 + (i * 15));
         });
-
-        setTimeout(() => {
-            for(let i=0; i<50; i++) {
-                setTimeout(() => {
-                    const joy = document.createElement('div');
-                    joy.className = 'joy-unit';
-                    joy.innerText = '👨‍🌾';
-                    joy.style.left = Math.random() * 100 + 'vw';
-                    joy.style.top = Math.random() * 100 + 'vh';
-                    document.body.appendChild(joy);
-                    createFirecracker(parseInt(joy.style.left) * window.innerWidth / 100, parseInt(joy.style.top) * window.innerHeight / 100);
-                }, i * 50);
-            }
-        }, 1000);
-
         setTimeout(() => {
             msg.innerHTML = "✨ HUMANS SAVED THE WORLD! ✨";
             msg.style.display = "block";
             msg.style.color = "#00ff00";
             msg.style.borderColor = "#00ff00";
-            msg.style.textShadow = "0 0 20px #00ff00";
         }, 1500);
     }
 
@@ -325,18 +345,21 @@
         document.querySelectorAll('.horde-unit, .joy-unit, .firecracker').forEach(u => u.remove());
         gameState = ["", "", "", "", "", "", "", "", ""];
         gameActive = true;
-        currentPlayer = '🧟';
-        statusTxt.innerText = "Zombies' Turn";
+        currentPlayer = humanPlayer; // RESET TO HUMAN FIRST
+        statusTxt.innerText = "(your turn)";
         msg.style.display = "none";
         gameContainer.style.display = 'block';
         bloodCenter.style.width = "0px";
         bloodCenter.style.height = "0px";
         cells.forEach(cell => cell.innerText = "");
         createArmies();
+        // REMOVED AUTOMATIC AI START
     }
 
     cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+    
+    // REMOVED AUTOMATIC AI MOVE ON LOAD
+    window.onload = () => { createArmies(); };
 </script>
 </body>
 </html>
-
