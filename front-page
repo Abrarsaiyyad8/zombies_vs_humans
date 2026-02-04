@@ -156,9 +156,7 @@
             border-radius: 50px;
             cursor: pointer;
             width: 100%;
-            margin-bottom: 20px;
             text-transform: uppercase;
-            /* GLOW EFFECT */
             box-shadow: 0 0 30px var(--hazard-yellow);
             transition: 0.3s;
         }
@@ -168,19 +166,6 @@
             background: white;
             box-shadow: 0 0 50px white;
         }
-
-        .mode-container { display: flex; gap: 10px; }
-        .mode-btn {
-            background: rgba(0,0,0,0.8);
-            color: #ccc;
-            border: 1px solid #666;
-            padding: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            flex: 1;
-            font-family: 'Stardos Stencil', sans-serif;
-        }
-        .mode-btn.active { border-color: var(--human-blue); color: white; box-shadow: 0 0 10px var(--human-blue); }
     </style>
 </head>
 <body>
@@ -218,10 +203,6 @@
     <div class="ui-overlay">
         <div class="vs-circle">VS</div>
         <button class="start-btn" onclick="startGame()">Start Game</button>
-        <div class="mode-container">
-            <button class="mode-btn active" id="single-player" onclick="setMode('single')">Solo</button>
-            <button class="mode-btn" id="double-player" onclick="setMode('double')">Duo</button>
-        </div>
     </div>
 
     <script>
@@ -245,11 +226,6 @@
 
         setInterval(createAsh, 60);
 
-        function setMode(mode) {
-            document.getElementById('single-player').classList.toggle('active', mode === 'single');
-            document.getElementById('double-player').classList.toggle('active', mode === 'double');
-        }
-
         function startGame() {
             document.querySelector('.zombies').style.transform = "translateX(-110%)";
             document.querySelector('.humans').style.transform = "translateX(110%)";
@@ -260,4 +236,3 @@
     </script>
 </body>
 </html>
-
