@@ -217,8 +217,9 @@
         const entryForm = document.getElementById('entry-form');
         entryForm.onsubmit = (e) => {
             e.preventDefault();
-            alert("Entry Authorized. Prepare for combat.");
+             window.location.href = "front.html"; 
         };
+        
 
         window.addEventListener('mousedown', () => {
             if (audioCtx.state === 'suspended') audioCtx.resume();
