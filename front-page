@@ -227,15 +227,12 @@
             const btn = document.querySelector('.start-btn');
             const warZone = document.getElementById('warZone');
             
-            warZone.classList.add('shaking');
-            playClashSound();
-            btn.innerHTML = "PREPARE!";
 
             setTimeout(() => {
                 warZone.classList.remove('shaking');
-                btn.innerHTML = "START GAME";
-                alert(`The heroes and zombies have taken their marks. Prepare for battle!`);
-            }, 600);
+                btn.innerHTML = "START GAME";                   
+                window.location.href = "game.html";
+                }, 1000);
         }
     </script>
 </body>
