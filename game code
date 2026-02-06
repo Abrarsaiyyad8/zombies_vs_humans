@@ -224,35 +224,66 @@
     function zombieAI() {
         if (!gameActive) return;
 
+        let bestScore = -Infinity;
         let moveIndex = -1;
 
-        // BLOCKING LOGIC: Check if Human is about to win
-        for (let condition of winConditions) {
-            const [a, b, c] = condition;
-            const vals = [gameState[a], gameState[b], gameState[c]];
-            const humanCount = vals.filter(v => v === '👨‍🌾').length;
-            const emptyCount = vals.filter(v => v === "").length;
-
-            if (humanCount === 2 && emptyCount === 1) {
-                moveIndex = condition[vals.indexOf("")];
-                break;
-            }
-        }
-
-        // If no block needed, pick random empty cell
-        if (moveIndex === -1) {
-            let availableMoves = [];
-            gameState.forEach((val, index) => {
-                if (val === "") availableMoves.push(index);
-            });
-            if (availableMoves.length > 0) {
-                moveIndex = availableMoves[Math.floor(Math.random() * availableMoves.length)];
+        // Minimax Search for Best Move
+        for (let i = 0; i < 9; i++) {
+            if (gameState[i] === "") {
+                gameState[i] = '🧟';
+                let score = minimax(gameState, 0, false);
+                gameState[i] = "";
+                if (score > bestScore) {
+                    bestScore = score;
+                    moveIndex = i;
+                }
             }
         }
 
         if (moveIndex !== -1) {
             makeMove(moveIndex);
         }
+    }
+
+    function minimax(board, depth, isMaximizing) {
+        let result = checkWinnerForAI();
+        if (result === '🧟') return 10 - depth;
+        if (result === '👨‍🌾') return depth - 10;
+        if (!board.includes("")) return 0;
+
+        if (isMaximizing) {
+            let bestScore = -Infinity;
+            for (let i = 0; i < 9; i++) {
+                if (board[i] === "") {
+                    board[i] = '🧟';
+                    let score = minimax(board, depth + 1, false);
+                    board[i] = "";
+                    bestScore = Math.max(score, bestScore);
+                }
+            }
+            return bestScore;
+        } else {
+            let bestScore = Infinity;
+            for (let i = 0; i < 9; i++) {
+                if (board[i] === "") {
+                    board[i] = '👨‍🌾';
+                    let score = minimax(board, depth + 1, true);
+                    board[i] = "";
+                    bestScore = Math.min(score, bestScore);
+                }
+            }
+            return bestScore;
+        }
+    }
+
+    function checkWinnerForAI() {
+        for (let condition of winConditions) {
+            const [a, b, c] = condition;
+            if (gameState[a] !== "" && gameState[a] === gameState[b] && gameState[a] === gameState[c]) {
+                return gameState[a];
+            }
+        }
+        return null;
     }
 
     function makeMove(index) {
